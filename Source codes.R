@@ -197,11 +197,25 @@ xcell_results <- xCellAnalysis(human_expr)
 
 xcell_scores <- as.data.frame(xcell_results)
 
-## CIBERSORT ----------------------------------------------
+## ESTIMATE ------------------------------------------------
 
-data(LM22)
-CIBERSORT_results <- cibersort(sig_matrix = LM22, mixture_file = as.matrix(human_expr))
-CIBERSORT_results <- CIBERSORT_results %>% as.data.frame() %>% t() %>% as.data.frame()
+# prepare input
+write.table(human_expr, file = "expr_input.txt", sep = "\t", quote = FALSE, 
+            row.names = TRUE, col.names = TRUE)
+
+# run ESTIMATE
+filterCommonGenes(input.f = "expr_input.txt", 
+                  output.f = "expr_genes.gct", 
+                  id = "GeneSymbol")
+
+estimateScore(input.ds = "expr_genes.gct",
+              output.ds = "ESTIMATE_scores.gct",
+              platform = "affymetrix")
+
+# load ESTIMATE results
+estimate_results <- read.table("ESTIMATE_scores.gct", skip = 2, header = TRUE, 
+                               row.names = 1, sep = "\t")
+estimate_scores <- estimate_results[,-1]
 
 # Gene-set enrichment analysis (GSEA) -------------------------------------
 
